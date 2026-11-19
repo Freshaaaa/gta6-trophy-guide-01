@@ -14,13 +14,49 @@
 // Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
 //   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 
-import { cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-frontend.ts';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
 const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+
+// Validate the guide's inputs before handing anything in: a broken trophy list
+// or a missing screenshot would otherwise be copied silently and only fail at
+// the judge. Fail here instead, naming the exact item that is wrong.
+function validateInputs(): void {
+  const dataPath = join(here, 'app', 'data', 'trophies.json');
+  let data: unknown;
+  try {
+    data = JSON.parse(readFileSync(dataPath, 'utf-8'));
+  } catch (err) {
+    throw new Error(`trophies.json does not parse (${dataPath}): ${(err as Error).message}`);
+  }
+  const trophies = (data as { trophies?: unknown }).trophies;
+  if (!Array.isArray(trophies) || trophies.length !== 55) {
+    throw new Error(`trophies.json must list exactly 55 trophies under "trophies", found ${Array.isArray(trophies) ? trophies.length : typeof trophies}`);
+  }
+  for (const t of trophies as Array<Record<string, unknown>>) {
+    if (typeof t.id !== 'number' || typeof t.name !== 'string' || t.name.length === 0) {
+      throw new Error(`trophy entry missing id/name: ${JSON.stringify(t).slice(0, 120)}`);
+    }
+    if (typeof t.guide !== 'string' || t.guide.trim().length === 0) {
+      throw new Error(`trophy #${t.id} "${t.name}" has no guide text`);
+    }
+  }
+  const shotsPath = join(here, 'shots.json');
+  if (existsSync(shotsPath)) {
+    const shots = JSON.parse(readFileSync(shotsPath, 'utf-8')) as Array<{ file: string }>;
+    for (const shot of shots) {
+      if (!existsSync(join(here, 'screenshots', shot.file))) {
+        throw new Error(`screenshot listed in shots.json is missing: screenshots/${shot.file}`);
+      }
+    }
+  }
+}
+
+validateInputs();
 
 mkdirSync(out, { recursive: true });
 cpSync(join(here, 'app'), join(out, 'app'), { recursive: true });

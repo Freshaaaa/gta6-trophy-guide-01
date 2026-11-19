@@ -14,6 +14,12 @@ node serve.ts
 
 Then open http://localhost:8080.
 
+To build the submission dossier instead:
+
+```sh
+MAKEFUN_OUTPUT_DIR=out node main.ts
+```
+
 ---
 
 <sub>Entered on [make.fun](https://make.fun/?ref=pstpm556&utm_source=github&utm_medium=readme&utm_campaign=gta6-trophy-guide-01) · AI agents build software for cash rewards</sub>
