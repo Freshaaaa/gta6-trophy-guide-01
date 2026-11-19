@@ -32,20 +32,10 @@
 
 <main>
   <section id="tab-tracker" class="panel active">
+    <p class="audit-bar" id="auditBar"></p>
+    <p class="nextup-bar" id="nextUpBar"></p>
     <div class="toolbar" role="search">
       <label class="search">Search <input id="search" type="search" placeholder="Trophy name or description&hellip;" autocomplete="off"></label>
-      <label>Kind
-        <select id="kindFilter">
-          <option value="all">All kinds</option>
-          <option value="story">Story</option>
-          <option value="side story">Side story</option>
-          <option value="collectibles">Collectibles</option>
-          <option value="activities">Activities</option>
-          <option value="robbery">Robbery</option>
-          <option value="exploration &amp; misc">Exploration &amp; misc</option>
-          <option value="100% completion">100% completion</option>
-        </select>
-      </label>
       <label>Grade
         <select id="gradeFilter">
           <option value="all">All grades</option>
@@ -64,6 +54,7 @@
         <button id="resetBtn" type="button">Reset</button>
       </span>
     </div>
+    <div class="chips" id="chips" aria-label="Filter by category"></div>
     <p class="list-meta"><span id="shownCount"></span> <span id="spoilerNote" hidden>Story trophies stay hidden until earned &mdash; tick one off to reveal it.</span></p>
     <div class="tracker-grid">
       <ol class="trophy-list" id="trophyList"></ol>
@@ -134,15 +125,16 @@
 
   <section id="tab-sources" class="panel">
     <h2>Sources</h2>
-    <p class="source-honesty"><strong>An honest note:</strong> Rockstar Games has not published an official trophy list. The names, descriptions and grades in this guide are those published by Exophase and GTABase, whose lists agree on every entry. PowerPyx&rsquo;s roadmap is built from that list. Every guide here is written for this entry in its own words and cites its sources &mdash; a source is cited, never copied.</p>
+    <p class="source-honesty"><strong>An honest note:</strong> Rockstar Games has not published an official trophy list. The names, descriptions and grades in this guide are those published by Exophase and GTABase, whose lists agree on every entry. PowerPyx&rsquo;s roadmap is the main method source; OutputLag&rsquo;s trophy list, KeenGamer&rsquo;s guide and EGamers&rsquo; list publish the same 55 entries and corroborate every name, description and grade. Every guide here is written for this entry in its own words and cites its sources &mdash; a source is cited, never copied.</p>
     <ul class="source-list">
       <li><strong>PowerPyx</strong> &mdash; GTA 6 Trophy Guide &amp; Roadmap (18 Nov 2026). The main guide: roadmap, missables, the 100% checklist and its lenient thresholds.</li>
+      <li><strong>OutputLag</strong> &mdash; GTA 6 Trophy List, by Steven Mills (19 Nov 2026). The full 55-trophy list with locations and counts; second method source alongside PowerPyx.</li>
+      <li><strong>Exophase</strong> &mdash; GTA 6 trophy list and earn rates (19 Nov 2026). The official list as published, with the counts PlayStation tracks (42 Shooting Range challenges, 14 drone locations, 52 areas, 500 choices).</li>
       <li><strong>GTABase</strong> &mdash; GTA 6 trophies. Trophy list; names, descriptions and grades agree with Exophase on every entry.</li>
-      <li><strong>Exophase</strong> &mdash; GTA 6 trophy list and earn rates. The official list as published, with the counts PlayStation tracks (42 Shooting Range challenges, 14 drone locations, 52 areas, 500 choices).</li>
+      <li><strong>KeenGamer</strong> &mdash; GTA 6 Trophy Guide &amp; Platinum Roadmap (19 Nov 2026). A second full roadmap; corroborates the list and the missable-trophy warnings.</li>
       <li><strong>EGamers.io</strong> &mdash; GTA 6 trophy list (19 Nov 2026).</li>
       <li><strong>TechWiser</strong> &mdash; GTA 6 trophy guide.</li>
       <li><strong>GTA Zone</strong> &mdash; GTA 6 trophy guide.</li>
-      <li><strong>KeenGamer</strong> &mdash; GTA 6 trophy guide.</li>
     </ul>
     <h3>Not yet confirmed</h3>
     <p>Five trophies&rsquo; exact steps are not yet confirmed by the cited guides, so their guides say so rather than inventing a method. Check back:</p>

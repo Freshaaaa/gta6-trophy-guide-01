@@ -44,6 +44,28 @@ function validateInputs(): void {
     if (typeof t.guide !== 'string' || t.guide.trim().length === 0) {
       throw new Error(`trophy #${t.id} "${t.name}" has no guide text`);
     }
+    // v2 fields: every trophy needs a roadmap stage, at least one source, a difficulty (1-5) and an estimated time.
+    if (typeof t.stage !== 'number' || t.stage < 1 || t.stage > 3) {
+      throw new Error(`trophy #${t.id} "${t.name}" has no valid stage (1-3)`);
+    }
+    if (!Array.isArray(t.sources) || t.sources.length === 0) {
+      throw new Error(`trophy #${t.id} "${t.name}" has no sources`);
+    }
+    if (typeof t.difficulty !== 'number' || t.difficulty < 1 || t.difficulty > 5) {
+      throw new Error(`trophy #${t.id} "${t.name}" has no valid difficulty (1-5)`);
+    }
+    if (typeof t.time !== 'string' || t.time.trim().length === 0) {
+      throw new Error(`trophy #${t.id} "${t.name}" has no estimated time`);
+    }
+    if (t.target !== null && t.target !== undefined) {
+      const target = t.target as { n?: unknown; unit?: unknown };
+      if (typeof target.n !== 'number' || target.n <= 0 || typeof target.unit !== 'string' || target.unit.length === 0) {
+        throw new Error(`trophy #${t.id} "${t.name}" has a malformed counter target`);
+      }
+    }
+    if (t.chapter !== null && t.chapter !== undefined && typeof t.chapter !== 'string') {
+      throw new Error(`trophy #${t.id} "${t.name}" has a non-string chapter`);
+    }
   }
   const shotsPath = join(here, 'shots.json');
   if (existsSync(shotsPath)) {
