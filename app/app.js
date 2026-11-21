@@ -35,6 +35,33 @@ const SOURCE_TAGS = [
   ['KeenGamer', 'KG'],
   ['EGamers', 'EG'],
 ];
+// Prefixes in the order the sources array lists them, for inline [n] citations.
+const SOURCE_PREFIXES = ['PowerPyx', 'OutputLag', 'Exophase', 'GTABase', 'KeenGamer', 'EGamers', 'TechWiser', 'GTA Zone'];
+
+// Split a guide into its sentences and the sources its own "Source:" line names.
+// The facts never change: the "Source:" sentence is lifted out of the body and
+// becomes the inline citations, so the steps read as numbered steps with [n] tags.
+function guideParts(t) {
+  const raw = t.guide.replace(/^UNCONFIRMED — check back\. /, '');
+  const srcAt = raw.search(/\s*Source: /);
+  const body = srcAt >= 0 ? raw.slice(0, srcAt) : raw;
+  const srcLine = srcAt >= 0 ? raw.slice(srcAt) : '';
+  const steps = body.split(/(?<=[.!?])\s+/).map((s) => s.trim()).filter(Boolean);
+  const citeIdx = [];
+  for (const prefix of SOURCE_PREFIXES) {
+    if (!srcLine.includes(prefix)) continue;
+    const i = t.sources.findIndex((s) => s.startsWith(prefix));
+    if (i >= 0) citeIdx.push(i + 1);
+  }
+  return { steps, citeIdx };
+}
+
+// The missable "why" is the guide's own sentence that names the risk:
+// a time-limited strand, a spot that is only there in Chapter 1, or a missable moment.
+function missableWhy(t) {
+  const { steps } = guideParts(t);
+  return steps.find((s) => /time-limited|only available|Chapter 1|missable/i.test(s)) ?? steps[0] ?? t.description;
+}
 
 // Roadmap order: stage first, then id (platinum #1 sorts first inside Stage 3, as the goal).
 const ROADMAP_ORDER = [...trophies].sort((a, b) => (a.stage - b.stage) || (a.id - b.id));
@@ -107,6 +134,37 @@ function renderProgress() {
   el('gradeCounts').innerHTML = ['platinum', 'gold', 'silver', 'bronze']
     .map((g) => `<li><b>${counts[g]}/${totals[g]}</b> ${gradeLabel(g)}</li>`)
     .join('');
+}
+
+function renderStageStrip() {
+  const strip = el('stageStrip');
+  strip.replaceChildren();
+  for (const stage of [1, 2, 3]) {
+    const total = trophies.filter((t) => t.stage === stage).length;
+    const done = trophies.filter((t) => t.stage === stage && earned.has(t.id)).length;
+    const pct = total ? Math.round((done / total) * 100) : 0;
+    const seg = document.createElement('button');
+    seg.type = 'button';
+    seg.className = 'stage-seg';
+    seg.title = `${STAGES[stage].title} — jump to its trophies in the list`;
+    const label = document.createElement('span');
+    label.className = 'stage-seg-label';
+    label.textContent = `S${stage} ${done}/${total}`;
+    const bar = document.createElement('span');
+    bar.className = 'stage-seg-bar';
+    const fill = document.createElement('span');
+    fill.className = 'stage-seg-fill';
+    fill.style.width = `${pct}%`;
+    bar.append(fill);
+    const name = document.createElement('span');
+    name.className = 'stage-seg-name';
+    name.textContent = STAGES[stage].title.replace(/^Stage \d+ · /, '');
+    seg.append(label, bar, name);
+    seg.addEventListener('click', () => {
+      document.querySelectorAll('.stage-group')[stage - 1]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    strip.append(seg);
+  }
 }
 
 function renderAuditBar() {
@@ -374,6 +432,12 @@ function renderTrophyDetail() {
   kindTag.className = 'tag';
   kindTag.textContent = t.kind;
   meta.append(kindTag);
+  if (t.target) {
+    const targetTag = document.createElement('span');
+    targetTag.className = 'tag target-tag';
+    targetTag.textContent = `TARGET: ${t.target.n}`;
+    meta.append(targetTag);
+  }
   if (t.missable) {
     const missTag = document.createElement('span');
     missTag.className = 'tag missable';
@@ -394,16 +458,51 @@ function renderTrophyDetail() {
     warn.textContent = 'Unconfirmed — the exact steps are not yet verified. This guide will not invent them.';
     guide.append(warn);
   }
-  const body = document.createElement('p');
-  body.textContent = t.guide.replace(/^UNCONFIRMED — check back\. /, '');
-  guide.append(body);
-  if (t.unresolved) {
-    const box = document.createElement('p');
-    box.className = 'unresolved';
-    const b = document.createElement('b');
-    b.textContent = 'NOT PINNED DOWN YET — ';
-    box.append(b, document.createTextNode(t.unresolved));
-    guide.append(box);
+  const { steps, citeIdx } = guideParts(t);
+  const guideHead = document.createElement('p');
+  guideHead.className = 'guide-head';
+  guideHead.textContent = 'HOW TO GET IT — in our own words';
+  guide.append(guideHead);
+  const ol = document.createElement('ol');
+  ol.className = 'guide-steps';
+  for (const step of steps) {
+    const li = document.createElement('li');
+    li.textContent = step;
+    for (const n of citeIdx) {
+      const sup = document.createElement('sup');
+      sup.className = 'cite';
+      sup.textContent = `[${n}]`;
+      li.append(' ', sup);
+    }
+    ol.append(li);
+  }
+  guide.append(ol);
+  if (t.missable || t.unresolved) {
+    const row = document.createElement('div');
+    row.className = 'info-boxes';
+    if (t.missable) {
+      const box = document.createElement('div');
+      box.className = 'info-box missable-box';
+      const head = document.createElement('p');
+      head.className = 'info-box-head';
+      head.textContent = t.unresolved ? 'MISSABLE? POSSIBLY' : 'MISSABLE? YES';
+      const why = document.createElement('p');
+      why.textContent = missableWhy(t);
+      box.append(head, why);
+      row.append(box);
+    }
+    if (t.unresolved) {
+      const box = document.createElement('div');
+      box.className = 'info-box unresolved-box';
+      const head = document.createElement('p');
+      head.className = 'info-box-head';
+      head.textContent = 'NOT PINNED DOWN YET';
+      const why = document.createElement('p');
+      why.textContent = t.unresolved.replace(/^Not pinned down yet — /, '');
+      box.append(head, why);
+      row.append(box);
+    }
+    guide.append(row);
   }
   const sources = document.createElement('div');
   sources.className = 'sources';
@@ -411,11 +510,14 @@ function renderTrophyDetail() {
   strong.textContent = 'Sources';
   sources.append(strong);
   const ul = document.createElement('ul');
-  for (const s of t.sources) {
+  t.sources.forEach((s, i) => {
     const li = document.createElement('li');
-    li.textContent = s;
+    const n = document.createElement('b');
+    n.className = 'source-no';
+    n.textContent = `[${i + 1}] `;
+    li.append(n, document.createTextNode(s));
     ul.append(li);
-  }
+  });
   sources.append(ul);
   const earnedLine = document.createElement('p');
   earnedLine.className = 'earned-line';
@@ -481,6 +583,7 @@ function renderMissableList() {
 
 function renderAll() {
   renderProgress();
+  renderStageStrip();
   renderAuditBar();
   renderNextUp();
   renderChips();
